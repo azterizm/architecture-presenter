@@ -1,0 +1,62 @@
+graph TD
+    %% ── Dark Elegant Theme ─────────────────────────────────
+    classDef gold      fill:#1f1c15,stroke:#c8a96e,stroke-width:1.5px,color:#e8d5a8
+    classDef sage      fill:#131a14,stroke:#7a9e7e,stroke-width:1px,color:#a8c8ac
+    classDef steel     fill:#131620,stroke:#8896a8,stroke-width:1px,color:#b0bece
+    classDef crimson   fill:#1a1212,stroke:#a87878,stroke-width:1px,color:#d4a0a0
+    classDef ghost     fill:#111110,stroke:#2a2926,stroke-width:1px,color:#6a6860,stroke-dasharray:4 3
+    classDef prominent fill:#c8a96e,stroke:#c8a96e,color:#1a1508,font-weight:600
+    classDef rejected  fill:#2a1111,stroke:#ff4444,stroke-width:2px,color:#ff8888,stroke-dasharray:5 5
+
+    %% ── Subgraph Styles ───────────────────────────────────
+    style Compute_Fleet fill:#181922,stroke:#8896a8,stroke-width:1.5px,stroke-dasharray:5 5
+    style Specs_Compute fill:none,stroke:none
+    
+    style DB_Fleet fill:#161d17,stroke:#7a9e7e,stroke-width:1.5px,stroke-dasharray:5 5
+    style Specs_DB fill:none,stroke:none
+    
+    style XDR_Storage fill:#1d1616,stroke:#ff4444,stroke-width:2px,stroke-dasharray:10 5
+    style Specs_XDR fill:none,stroke:none
+
+    NLB[OCI NLB]:::gold
+    
+    subgraph Compute_Fleet [Compute Fleet]
+        subgraph Specs_Compute [Compute Specifications]
+            Info_Compute["Total Nodes: 20<br>Shape: VM.Standard.A1.Flex (40 OCPU)<br>Workload: Go API<br>Network: 800 Gbps Capacity"]:::prominent
+        end
+        
+        VM1[Compute Node 1]:::steel
+        VM2[Compute Node 2]:::steel
+        VMDots[...]:::ghost
+        VM20[Compute Node 20]:::steel
+    end
+
+    subgraph DB_Fleet [Aerospike Database Fleet]
+        subgraph Specs_DB [DB Specifications]
+            Info_DB["Total Nodes: 12<br>Shape: VM.DenseIO.E4.Flex<br>Configuration: RF 2, Hybrid Mode"]:::prominent
+        end
+        
+        DB1[Aerospike Node 1]:::sage
+        DB2[Aerospike Node 2]:::sage
+        
+        DBDots[...]:::ghost
+        DB12[Aerospike Node 12]:::sage
+    end
+
+    subgraph XDR_Storage ["XDR Recovery / Backup Storage (Rejected)"]
+        subgraph Specs_XDR [XDR Specifications]
+            Info_XDR["OCI Object Storage / Network Volume<br>Requires extra 256 Gbps reserved pipe<br>High Bandwidth Consumption & Latency"]:::rejected
+        end
+        
+        OS1[(Object Storage / Vol)]:::rejected
+    end
+    
+    NLB -- "256 Gbps" --> VM1
+    NLB --> VM2
+    NLB -.-> VMDots
+    NLB --> VM20
+
+    Compute_Fleet -- "256 Gbps<br>Write (Main DB)" --> DB_Fleet
+    
+    DB_Fleet == "XDR Sync<br>⚠️ Extra 256 Gbps Pipe Required" === XDR_Storage
+    linkStyle 5 stroke:#ff4444,stroke-width:3px,color:#ff8888,stroke-dasharray:5 5

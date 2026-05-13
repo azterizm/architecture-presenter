@@ -1,0 +1,87 @@
+graph TD
+
+%% Define Classes
+
+classDef global fill:#1a365d,stroke:#2b6cb0,stroke-width:2px,color:#fff;
+
+classDef compute fill:#2d3748,stroke:#4a5568,stroke-width:2px,color:#fff;
+
+classDef storage fill:#2c7a7b,stroke:#38b2ac,stroke-width:2px,color:#fff;
+
+  
+
+%% New High-Contrast class for Crucial Functionality & Testing
+
+classDef crucial fill:#e53e3e,stroke:#c53030,stroke-width:4px,color:#fff,stroke-dasharray: 5 5;
+
+  
+
+Client((Global Users))
+
+  
+
+subgraph The_Edge_Layer [Edge Layer - Optional for Core Path]
+
+CF_DNS[Cloudflare DNS \n Traffic Routing]:::global
+
+CF_CDN[Cloudflare CDN \n Edge Security]:::global
+
+end
+
+  
+
+%% CRUCIAL: High-throughput entry point must be tested
+
+subgraph LB_Layer [LB Layer]
+
+NLB[OCI NLB \n L4 Stateless Balancing]:::crucial
+
+end
+
+  
+
+subgraph Cloud_Infrastructure [OCI Cell Infrastructure - 1 of 8]
+
+%% CRUCIAL: API logic and Shard-Awareness is critical for performance
+
+subgraph Compute_Layer [API Fleet]
+
+API[Golang API Fleet \n 5x A1.Flex Nodes]:::crucial
+
+end
+
+  
+
+%% CRUCIAL DB / Optional S3
+
+subgraph Storage_Layer [Unified Data Layer]
+
+Scylla[(ScyllaDB Cluster \n 1.5TB Block Volumes / 120 VPU)]:::crucial
+
+ObjStorage[(OCI Object Storage \n Tiered Storage / Archive)]:::storage
+
+end
+
+end
+
+  
+
+Client -->|1| CF_DNS
+
+CF_DNS -.->|2| Client
+
+Client ==>|3| CF_CDN
+
+CF_CDN ==>|4| NLB
+
+NLB ==>|5| API
+
+  
+
+%% CRUCIAL: High-load data path
+
+API ==>|6 - Critical Write/Read| Scylla
+
+Scylla -.->|7| API
+
+Scylla -.->|8 - Tiering| ObjStorage

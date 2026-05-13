@@ -1,0 +1,25 @@
+graph TD
+
+%% Define Classes
+classDef global fill:#1a365d,stroke:#2b6cb0,stroke-width:2px,color:#fff;
+classDef compute fill:#2d3748,stroke:#4a5568,stroke-width:2px,color:#fff;
+classDef storage fill:#2c7a7b,stroke:#38b2ac,stroke-width:2px,color:#fff;
+classDef crucial fill:#e53e3e,stroke:#c53030,stroke-width:4px,color:#fff,stroke-dasharray: 5 5;
+
+Client((Global Users))
+
+subgraph Edge_Layer [Edge Layer]
+CDN[CDN]:::global
+end
+
+subgraph LB_Layer [Load Balancer Layer]
+NLB[OCI NLB L4]:::crucial
+end
+
+subgraph Storage_Layer [Database Layer]
+Aerospike[(Aerospike Cluster)]:::storage
+end
+
+Client --> CDN
+CDN --> NLB
+NLB --> Aerospike

@@ -1,0 +1,75 @@
+graph TD
+    %% ── Dark Elegant Theme ─────────────────────────────────
+    classDef gold      fill:#1f1c15,stroke:#c8a96e,stroke-width:1.5px,color:#e8d5a8
+    classDef sage      fill:#131a14,stroke:#7a9e7e,stroke-width:1px,color:#a8c8ac
+    classDef steel     fill:#131620,stroke:#8896a8,stroke-width:1px,color:#b0bece
+    classDef crimson   fill:#1a1212,stroke:#a87878,stroke-width:1px,color:#d4a0a0
+    classDef ghost     fill:#111110,stroke:#2a2926,stroke-width:1px,color:#6a6860,stroke-dasharray:4 3
+    classDef prominent fill:#c8a96e,stroke:#c8a96e,color:#1a1508,font-weight:600
+
+    %% ── Subgraph Styles ───────────────────────────────────
+    style Compute_Fleet fill:#181922,stroke:#8896a8,stroke-width:1.5px,stroke-dasharray:5 5
+    style Specs_Compute fill:none,stroke:none
+    
+    style BK_Fleet fill:#1d1616,stroke:#a87878,stroke-width:1.5px,stroke-dasharray:5 5
+    style Specs_BK fill:none,stroke:none
+
+    style DB_Fleet fill:#161d17,stroke:#7a9e7e,stroke-width:1.5px,stroke-dasharray:5 5
+    style Specs_DB fill:none,stroke:none
+
+    NLB[OCI NLB]:::gold
+    
+    subgraph Compute_Fleet [Compute Fleet]
+        subgraph Specs_Compute [Compute Specifications]
+            Info_Compute["Total Nodes: 20<br>Shape: VM.Standard.A1.Flex (40 OCPU)<br>Workload: Go API + Apache Pulsar Brokers<br>Network: 800 Gbps Capacity"]:::prominent
+        end
+        
+        VM1[Compute Node 1]:::steel
+        VM2[Compute Node 2]:::steel
+        VMDots[...]:::ghost
+        VM20[Compute Node 20]:::steel
+    end
+
+    subgraph BK_Fleet [Apache BookKeeper Fleet]
+        subgraph Specs_BK [BookKeeper Specifications]
+            Info_BK["Total Nodes: 36<br>Shape: VM.Standard.A1.Flex (40 OCPU)<br>Config: E=2, WQ=2, AQ=1 (WAF 1, RF 2)"]:::prominent
+        end
+        
+        BK1[Bookie Node 1]:::crimson
+        BK2[Bookie Node 2]:::crimson
+        
+        BKDots[...]:::ghost
+        BK36[Bookie Node 36]:::crimson
+    end
+
+    subgraph Storage_Fleet [Block Storage Fleet]
+        subgraph Specs_Storage [Storage Specifications]
+            Info_Storage["Standard Block Volumes<br>Base 36, Scales to 112 disks max<br>Backups: Weekly Snapshots"]:::prominent
+        end
+        
+        Vol1[(Block Volume 1)]:::ghost
+        Vol2[(Block Volume 2)]:::ghost
+    end
+
+    BK1 --- Vol1
+    BK2 --- Vol2
+
+    subgraph DB_Fleet [Aerospike Database Fleet]
+        subgraph Specs_DB [DB Specifications]
+            Info_DB["Total Nodes: 12<br>Shape: VM.DenseIO.E4.Flex<br>Configuration: RF 2, Hybrid Mode"]:::prominent
+        end
+        
+        DB1[Aerospike Node 1]:::sage
+        DB2[Aerospike Node 2]:::sage
+        
+        DBDots[...]:::ghost
+        DB12[Aerospike Node 12]:::sage
+    end
+    
+    NLB -- "256 Gbps" --> VM1
+    NLB --> VM2
+    NLB -.-> VMDots
+    NLB --> VM20
+
+    Compute_Fleet -- "256 Gbps<br>Dual Write (Backup & Recovery)" --> BK_Fleet
+    Compute_Fleet -- "256 Gbps<br>Dual Write (Main DB)" --> DB_Fleet

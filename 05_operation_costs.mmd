@@ -1,0 +1,59 @@
+graph TD
+    %% ── Classes ─────────────────────────────────────────────
+    classDef gold      fill:#1f1c15,stroke:#c8a96e,stroke-width:1.5px,color:#e8d5a8
+    classDef sage      fill:#131a14,stroke:#7a9e7e,stroke-width:1px,color:#a8c8ac
+    classDef steel     fill:#131620,stroke:#8896a8,stroke-width:1px,color:#b0bece
+    classDef crimson   fill:#1a1212,stroke:#a87878,stroke-width:1px,color:#d4a0a0
+    classDef ghost     fill:#111110,stroke:#2a2926,stroke-width:1px,color:#6a6860,stroke-dasharray:4 3
+    classDef prominent fill:#c8a96e,stroke:#c8a96e,color:#1a1508,font-weight:600
+
+    %% ── Main Header ─────────────────────────────────────────
+    TotalCost(["Total Monthly Infrastructure Cost: ~$152,907.84<br/>With Month 1 OCI Object Storage: ~$988,907.84"]):::prominent
+
+    %% ── Cost Breakdown ──────────────────────────────────────
+
+    subgraph PerNode ["1. Per Node Cost ($3,185.58)"]
+        direction TB
+        NodeVM["VM (40 OCPU / 128GB RAM)<br/>$383.45"]:::steel
+        BootVol["Boot Volume<br/>$2.13"]:::sage
+        NetDisks["8x Network Disks (1525GB, 120 VPU @ $350 each)<br/>$2,800.00"]:::gold
+        
+        NodeVM --- BootVol --- NetDisks
+    end
+
+    subgraph PerCell ["2. Per Cell Cost ($38,226.96)"]
+        direction TB
+        NodeCount["12x Nodes (VM + 8 Disks + Boot Vol)<br/>$38,226.96"]:::crimson
+        CellDesc["Supports 250k RPS<br/>Distributed across 3 Fault Domains"]:::ghost
+        
+        NodeCount --- CellDesc
+    end
+
+    subgraph GlobalCost ["3. Global 4-Cell Cost ($152,907.84)"]
+        direction TB
+        CellTotal["4x Cells (48 VMs, 384 Disks)<br/>$152,907.84"]:::crimson
+        GlobalDesc["Supports 1 Million RPS Global Traffic"]:::ghost
+        
+        CellTotal --- GlobalDesc
+    end
+
+    subgraph NetworkCost ["4. Network Egress"]
+        direction TB
+        Egress["82 PB Monthly Egress<br/>via FastConnect Partner<br/>~$20,000 - $30,000<br/>(Not included in total)"]:::sage
+    end
+
+    subgraph StorageCost ["5. Object Storage (Cumulative)"]
+        direction TB
+        StorageM1["Month 1 Capacity (at $0.01/GB)<br/>$836,000"]:::crimson
+        StorageM23["Month 2: ~$1.6M<br/>Month 3: ~$2.5M"]:::crimson
+        Discount["Requires Deep Enterprise Discount<br/>(Expected 30% - 50% reduction)"]:::ghost
+        
+        StorageM1 --- StorageM23 --- Discount
+    end
+
+    %% Connections from Total
+    TotalCost --> PerNode
+    TotalCost --> PerCell
+    TotalCost --> GlobalCost
+    TotalCost --> NetworkCost
+    TotalCost --> StorageCost

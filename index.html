@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="/node_modules/@fortawesome/fontawesome-free/css/all.min.css">
+  <title>Memon Systems</title>
+  <style>
+    #controls {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      z-index: 1000;
+      background: rgba(15, 23, 42, 0.8);
+      padding: 10px;
+      border-radius: 8px;
+      color: white;
+      font-family: sans-serif;
+    }
+    select {
+      background: #1e293b;
+      color: white;
+      border: 1px solid #334155;
+      padding: 5px;
+      border-radius: 4px;
+      outline: none;
+    }
+  </style>
+  <script src="/node_modules/svg-pan-zoom/dist/svg-pan-zoom.min.js"></script>
+</head>
+<body style="background: #0f172a; margin: 0; overflow: hidden; height: 100vh; width: 100vw;">
+  <div id="controls">
+    <select id="diagram-select"></select>
+  </div>
+  <div id="graph" class="mermaid" style="height: 100%; width: 100%;"></div>
+  <script type="module" src="/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,41 @@
+graph TD
+%% ── Dark Elegant Theme ─────────────────────────────────
+classDef gold      fill:#1f1c15,stroke:#c8a96e,stroke-width:1.5px,color:#e8d5a8
+classDef sage      fill:#131a14,stroke:#7a9e7e,stroke-width:1px,color:#a8c8ac
+classDef steel     fill:#131620,stroke:#8896a8,stroke-width:1px,color:#b0bece
+classDef crimson   fill:#1a1212,stroke:#a87878,stroke-width:1px,color:#d4a0a0
+classDef ghost     fill:#111110,stroke:#2a2926,stroke-width:1px,color:#6a6860,stroke-dasharray:4 3
+classDef prominent fill:#c8a96e,stroke:#c8a96e,color:#1a1508,font-weight:600
+
+    subgraph External ["External Traffic (1 Million RPS, 32KB payload)"]
+        Client(["Clients"]):::sage
+        GlobalRouter{"DNS / Global Router"}:::gold
+    end
+
+    subgraph OCI ["Oracle Cloud Infrastructure (4-Cell Architecture)"]
+        subgraph Cell1 ["Cell 1 (250k RPS)"]
+            NLB1["Cell 1 NLB (Layer 4)"]:::prominent
+            VMPool["Compute Pool: 12x VMs<br>(40 OCPU / 128GB RAM)<br>53.3% Util, 3 VMs per Fault Domain"]:::steel
+            NetDisks[("Elastic Network Disks<br>(Buffer & WAL)")]:::gold
+        end
+
+        subgraph OtherCells ["Other Cells"]
+            Cell2["Cell 2 (250k RPS)"]:::ghost
+            Cell3["Cell 3 (250k RPS)"]:::ghost
+            Cell4["Cell 4 (250k RPS)"]:::ghost
+        end
+
+        subgraph StorageTier ["Data & Analytics Tier"]
+            ObjStore[("OCI Object Storage<br>(Persistent Archive)")]:::sage
+            Trino["OCI Big Data Service<br>(Trino / Historical Query)"]:::gold
+        end
+    end
+
+    Client -- "1M RPS" --> GlobalRouter
+    GlobalRouter -- "25% Traffic" --> NLB1
+    GlobalRouter -.-> Cell2 & Cell3 & Cell4
+    NLB1 --> VMPool
+    VMPool -- "Appends to" --> NetDisks
+    NetDisks -- "Offloads Frozen Data" --> ObjStore
+    ObjStore -- "Historical Analytics" --> Trino
+    class External,OCI,OtherCells ghost

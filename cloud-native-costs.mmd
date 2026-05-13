@@ -1,0 +1,57 @@
+graph TD
+    %% ── Classes ─────────────────────────────────────────────
+    classDef gold      fill:#1f1c15,stroke:#c8a96e,stroke-width:1.5px,color:#e8d5a8
+    classDef sage      fill:#131a14,stroke:#7a9e7e,stroke-width:1px,color:#a8c8ac
+    classDef steel     fill:#131620,stroke:#8896a8,stroke-width:1px,color:#b0bece
+    classDef crimson   fill:#1a1212,stroke:#a87878,stroke-width:1px,color:#d4a0a0
+    classDef ghost     fill:#111110,stroke:#2a2926,stroke-width:1px,color:#6a6860,stroke-dasharray:4 3
+    classDef prominent fill:#c8a96e,stroke:#c8a96e,color:#1a1508,font-weight:600
+
+    %% ── Main Header ─────────────────────────────────────────
+    TotalCost(["Monthly Baseline: ~$8,642,000"]):::prominent
+
+    %% ── List Layout Using Subgraphs & Links ─────────────────
+
+    subgraph Network ["1. Network & Delivery ($5.76M)"]
+        direction TB
+        Egress["Internet Egress (84 PB @ $0.05/GB)<br/>$4,200,000"]:::crimson
+        InterAZ["Inter-AZ Transfer (66% @ $0.02/GB)<br/>$1,120,000"]:::crimson
+        Shield["AWS Shield Advanced<br/>$420,000"]:::crimson
+        R53["Amazon Route 53 DNS (1% Cache Miss)<br/>$5,000"]:::sage
+        
+        Egress --- InterAZ --- Shield --- R53
+    end
+
+    subgraph Compute ["2. Compute, Load Balancing & Ingestion ($990k)"]
+        direction TB
+        MSK["Amazon MSK Kafka (100 Brokers + EBS)<br/>$820,000"]:::crimson
+        NLB["Network Load Balancer (~32k NLCUs)<br/>$140,000"]:::steel
+        EKS["Amazon EKS (Graviton EC2)<br/>$30,000"]:::steel
+        
+        MSK --- NLB --- EKS
+    end
+
+    subgraph Storage ["3. Storage & Observability ($1.9M+)"]
+        direction TB
+        S3M1["S3 Capacity Month 1 (84 PB @ $0.021/GB)<br/>$1,764,000"]:::crimson
+        S3M23["S3 Capacity Month 2 (168 PB): $3,528,000<br/>S3 Capacity Month 3 (252 PB): $5,292,000"]:::crimson
+        S3PUT["S3 PUT Requests (Heavily Batched)<br/>$13,000"]:::sage
+        CW["CloudWatch Logging (Sampled 100b/req)<br/>$130,000"]:::ghost
+        
+        S3M1 --- S3M23 --- S3PUT --- CW
+    end
+
+    subgraph Traps ["4. Fatal Architecture Cost Traps (Avoid)"]
+        direction TB
+        NAT["NAT Gateway Routing Fee (84 PB)<br/>+$3,780,000 / mo"]:::ghost
+        S3Unbatched["Unbatched S3 PUTs (2.6T Requests)<br/>+$12,900,000 / mo"]:::ghost
+        LogAll["Unsampled Telemetry / Logging<br/>Unlimited Hidden Cost"]:::ghost
+        
+        NAT --- S3Unbatched --- LogAll
+    end
+
+    %% Connections from Total
+    TotalCost --> Network
+    TotalCost --> Compute
+    TotalCost --> Storage
+    TotalCost --> Traps
