@@ -1,5 +1,7 @@
 import mermaid from 'mermaid';
 import { themeClasses } from './theme.js';
+import { DrawingManager } from './drawing.js';
+import { NodeHighlighter } from './highlight.js';
 
 const diagrams = import.meta.glob('./*.mmd', { query: '?raw', import: 'default' });
 
@@ -11,6 +13,8 @@ mermaid.initialize({
 
 const graphElement = document.getElementById('graph');
 const selectElement = document.getElementById('diagram-select');
+const drawingManager = new DrawingManager(graphElement);
+const nodeHighlighter = new NodeHighlighter(graphElement, drawingManager);
 
 const getDiagramFromHash = () => {
   const hash = window.location.hash.slice(1);
@@ -50,8 +54,15 @@ const render = async (content) => {
         fit: true,
         center: true,
         minZoom: 0.1,
-        maxZoom: 10
+        maxZoom: 10,
+        beforePan: () => {
+          // Disable panning if we are drawing
+          return !drawingManager.isDrawing && (drawingManager.currentTool === 'select' || !drawingManager.isVisible);
+        }
       });
+
+      drawingManager.initLayer();
+      nodeHighlighter.init();
     }
   } catch (e) {
     console.error("Mermaid Render Error:", e);
@@ -97,6 +108,15 @@ selectElement.addEventListener('change', (e) => {
   loadDiagram(e.target.value);
 });
 
+const resetView = () => {
+  if (window.panZoomInstance) {
+    window.panZoomInstance.resetZoom();
+    window.panZoomInstance.resetPan();
+    window.panZoomInstance.fit();
+    window.panZoomInstance.center();
+  }
+};
+
 loadDiagram(currentFile);
 
 window.addEventListener('hashchange', () => {
@@ -114,12 +134,29 @@ if (import.meta.hot) {
   });
 }
 
-// Global keydown listener for reset functionality
+// Global keydown listener for shortcuts
 window.addEventListener('keydown', (e) => {
-  if (e.key === '0' && window.panZoomInstance) {
-    window.panZoomInstance.resetZoom();
-    window.panZoomInstance.resetPan();
-    window.panZoomInstance.fit();
-    window.panZoomInstance.center();
+  const activeTag = document.activeElement.tagName;
+  if (['INPUT', 'TEXTAREA'].includes(activeTag)) return;
+
+  if (e.key === '0') {
+    resetView();
+  }
+
+  if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+    const options = Array.from(selectElement.options);
+    if (options.length <= 1) return;
+
+    e.preventDefault();
+    let newIndex = selectElement.selectedIndex;
+
+    if (e.key === 'ArrowUp') {
+      newIndex = (newIndex - 1 + options.length) % options.length;
+    } else {
+      newIndex = (newIndex + 1) % options.length;
+    }
+
+    selectElement.selectedIndex = newIndex;
+    loadDiagram(options[newIndex].value);
   }
 });

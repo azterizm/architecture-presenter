@@ -1,0 +1,52 @@
+flowchart LR
+%% ── Dark Elegant Theme ─────────────────────────────────
+classDef gold      fill:#1f1c15,stroke:#c8a96e,stroke-width:1.5px,color:#e8d5a8
+classDef sage      fill:#131a14,stroke:#7a9e7e,stroke-width:1px,color:#a8c8ac
+classDef steel     fill:#131620,stroke:#8896a8,stroke-width:1px,color:#b0bece
+classDef crimson   fill:#1a1212,stroke:#a87878,stroke-width:1px,color:#d4a0a0
+classDef ghost     fill:#111110,stroke:#2a2926,stroke-width:1px,color:#6a6860,stroke-dasharray:4 3
+classDef prominent fill:#c8a96e,stroke:#c8a96e,color:#1a1508,font-weight:600
+
+    subgraph External ["External Ingress (1M RPS)"]
+        direction TB
+        GlobalRouter{"DNS / Global LB"}:::gold
+        NLB["OCI Network Load Balancer<br>(L4 / Direct Routing)"]:::prominent
+        GlobalRouter --> NLB
+    end
+
+    subgraph ComputeNode ["C++ Compute Tier (DPDK/Seastar Shared-Nothing)"]
+        direction TB
+        NIC["OCI 100GbE NIC Hardware<br>(SR-IOV / VFIO-PCI)"]:::steel
+        Mbuf["Hugepages Memory<br>(rte_mempool / mbuf)"]:::sage
+        
+        subgraph Cores ["Thread-Per-Core (Pinned CPUs)"]
+            direction TB
+            Core1["Core 1: DPDK Rx Ring -> Userspace TCP -> App Logic"]:::gold
+            Core2["Core 2: DPDK Rx Ring -> Userspace TCP -> App Logic"]:::gold
+        end
+        
+        SPDK["SPDK Appender<br>(Direct Local NVMe)"]:::steel
+        
+        NIC -- "DMA Write" --> Mbuf
+        Mbuf -. "Pointer Ref" .-> Cores
+        Cores -- "Pass mbuf (Zero Context Switch)" --> SPDK
+    end
+
+    subgraph Storage ["Storage Fabric (RDMA / RoCEv2)"]
+        direction TB
+        DAOS_API["DAOS API (libdaos)<br>Async RDMA Push"]:::prominent
+        DAOS_Pools[("DAOS Distributed Container<br>(Key-Array 32KB Objects)")]:::gold
+        S3[("OCI Object Storage<br>(Native Tiering / Archive)")]:::sage
+        
+        DAOS_API --> DAOS_Pools
+        DAOS_Pools -- "Zero-Copy Async Flush" --> S3
+    end
+
+    %% Main Data Flow (Left to Right)
+    NLB -- "Raw Frames<br>(RSS Hashing by IP/Port)" --> NIC
+    SPDK -- "spdk_thread<br>(Bypass Kernel)" --> DAOS_API
+    
+    %% Optional layout adjustments to "make it go around" / visually balanced
+    S3 -. "Metadata / Tiering Status" .-> GlobalRouter
+
+    class External,ComputeNode,Cores,Storage ghost
