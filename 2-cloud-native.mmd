@@ -8,53 +8,52 @@ graph TD
     classDef prominent fill:#c8a96e,stroke:#c8a96e,color:#1a1508,font-weight:600
 
     %% 1. Input Source
-    Users(["Global Clients - 1M RPS / 32KB Payload"]):::prominent
+    Users(["Clients"]):::prominent
 
     %% 2. Entry Point
-    Users -->|Total 32 GB per sec| NLB["AWS Network Load Balancer L4"]:::steel
+    Users -->|Incoming Requests| LB["Load Balancer"]:::steel
 
     %% Region Boundary
-    subgraph Region["AWS REGION"]
+    subgraph Region["Cloud Region"]
         direction TB
 
-        NLB -->|Distributes Traffic| AZ1
-        NLB -->|Distributes Traffic| AZ2
-
         %% Availability Zone 1
-        subgraph AZ1["Availability Zone A"]
+        subgraph AZ1["Availability Zone 1"]
             direction TB
-            EKS_AZ1["Amazon EKS Pods Graviton"]:::steel
-            MSK_AZ1["Amazon MSK Kafka Ingest"]:::sage
-            Redis_AZ1["Amazon ElastiCache Redis Serve"]:::crimson
+            Compute_AZ1["Compute Instances"]:::steel
+            MQ_AZ1["Message Queue"]:::sage
+            Cache_AZ1["Distributed Cache"]:::crimson
             
-            EKS_AZ1 -->|Write to Commit Log| MSK_AZ1
-            EKS_AZ1 -->|Read from Cache| Redis_AZ1
+            Compute_AZ1 -->|Write Events| MQ_AZ1
+            Compute_AZ1 -->|Read/Write| Cache_AZ1
         end
 
         %% Availability Zone 2
-        subgraph AZ2["Availability Zone B"]
+        subgraph AZ2["Availability Zone 2"]
             direction TB
-            EKS_AZ2["Amazon EKS Pods Graviton"]:::steel
-            MSK_AZ2["Amazon MSK Kafka Ingest"]:::sage
-            Redis_AZ2["Amazon ElastiCache Redis Serve"]:::crimson
+            Compute_AZ2["Compute Instances"]:::steel
+            MQ_AZ2["Message Queue"]:::sage
+            Cache_AZ2["Distributed Cache"]:::crimson
             
-            EKS_AZ2 -->|Write to Commit Log| MSK_AZ2
-            EKS_AZ2 -->|Read from Cache| Redis_AZ2
-        end
-
-        %% 3. Scaling Mechanics
-        subgraph Scaling["Auto-Scaling Mechanism"]
-            HPA["Kubernetes HPA Pods"]:::ghost
-            CA["Cluster Autoscaler Nodes"]:::ghost
+            Compute_AZ2 -->|Write Events| MQ_AZ2
+            Compute_AZ2 -->|Read/Write| Cache_AZ2
         end
 
         %% 4. Data Layer Synchronization
-        subgraph SyncLayer["Data Replication"]
-            MSK_AZ1 -.->|Cross AZ Data Transfer Cost| MSK_AZ2
-            Redis_AZ1 -.->|Cross AZ Data Transfer Cost| Redis_AZ2
-        end
+        MQ_AZ1 -.->|Sync| MQ_AZ2
+        Cache_AZ1 -.->|Sync| Cache_AZ2
     end
 
+    %% 3. Scaling Mechanics (Moved outside Region for layout)
+    subgraph Scaling["Auto-Scaling"]
+        direction LR
+        HPA["Horizontal Scaling"]:::ghost
+        CA["Node Scaling"]:::ghost
+    end
+
+    LB -->|Distributes Traffic| Compute_AZ1
+    LB -->|Distributes Traffic| Compute_AZ2
+
     %% Scaling Interactions
-    Scaling -.->|Monitors and Scales| EKS_AZ1
-    Scaling -.->|Monitors and Scales| EKS_AZ2
+    Scaling -.->|Monitors and Scales| Compute_AZ1
+    Scaling -.->|Monitors and Scales| Compute_AZ2

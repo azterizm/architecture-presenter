@@ -8,8 +8,8 @@ classDef ghost     fill:#111110,stroke:#2a2926,stroke-width:1px,color:#6a6860,st
 classDef prominent fill:#c8a96e,stroke:#c8a96e,color:#1a1508,font-weight:600
 classDef highlight fill:#2d2417,stroke:#c8a96e,stroke-width:1px,color:#e8d5a8
 
-    subgraph Cell1 ["Cell 1: Infra Engineering (250k RPS)"]
-        NLB["Cell 1 NLB (Layer 4)"]:::prominent
+    subgraph InfraCore ["Infrastructure Engineering"]
+        NLB["Network Load Balancer (Layer 4)"]:::prominent
         
         subgraph ComputeGrid ["Compute Pool: 12x VMs (40 OCPU, 128GB RAM, 53% Base Util)"]
             direction LR
@@ -51,14 +51,5 @@ classDef highlight fill:#2d2417,stroke:#c8a96e,stroke-width:1px,color:#e8d5a8
     NLB --> ComputeGrid
     VM1 -. "Attached Volumes" .-> DiskGrid
     ComputeGrid -. "Capacity Rules" .-> DR
-
-    subgraph OtherCells ["Global Scaling (1M RPS)"]
-        direction LR
-        C2["Cell 2"]:::ghost
-        C3["Cell 3"]:::ghost
-        C4["Cell 4"]:::ghost
-    end
-
-    Cell1 -. "Identical Replcation" .-> OtherCells
     
-    class Cell1,ComputeGrid,FD1,FD2,FD3,DiskGrid,OtherCells ghost
+    class InfraCore,ComputeGrid,FD1,FD2,FD3,DiskGrid ghost

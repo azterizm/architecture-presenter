@@ -7,22 +7,11 @@ classDef crimson   fill:#1a1212,stroke:#a87878,stroke-width:1px,color:#d4a0a0
 classDef ghost     fill:#111110,stroke:#2a2926,stroke-width:1px,color:#6a6860,stroke-dasharray:4 3
 classDef prominent fill:#c8a96e,stroke:#c8a96e,color:#1a1508,font-weight:600
 
-    subgraph External ["External Traffic (1 Million RPS, 32KB payload)"]
-        Client(["Clients"]):::sage
-        GlobalRouter{"DNS / Global Router"}:::gold
-    end
-
-    subgraph OCI ["Oracle Cloud Infrastructure (4-Cell Architecture)"]
-        subgraph Cell1 ["Cell 1 (250k RPS)"]
-            NLB1["Cell 1 NLB (Layer 4)"]:::prominent
-            VMPool["Compute Pool: 12x VMs<br>(40 OCPU / 128GB RAM)<br>53.3% Util, 3 VMs per Fault Domain"]:::steel
+    subgraph OCI ["Oracle Cloud Infrastructure"]
+        subgraph Core ["Core Ingestion Architecture"]
+            NLB["Network Load Balancer (Layer 4)"]:::prominent
+            VMPool["Compute Pool<br>(40 OCPU / 128GB RAM VMs)<br>Distributed across Fault Domains"]:::steel
             NetDisks[("Elastic Network Disks<br>(Buffer & WAL)")]:::gold
-        end
-
-        subgraph OtherCells ["Other Cells"]
-            Cell2["Cell 2 (250k RPS)"]:::ghost
-            Cell3["Cell 3 (250k RPS)"]:::ghost
-            Cell4["Cell 4 (250k RPS)"]:::ghost
         end
 
         subgraph StorageTier ["Data & Analytics Tier"]
@@ -31,11 +20,8 @@ classDef prominent fill:#c8a96e,stroke:#c8a96e,color:#1a1508,font-weight:600
         end
     end
 
-    Client -- "1M RPS" --> GlobalRouter
-    GlobalRouter -- "25% Traffic" --> NLB1
-    GlobalRouter -.-> Cell2 & Cell3 & Cell4
-    NLB1 --> VMPool
+    NLB -- "1M RPS" --> VMPool
     VMPool -- "Appends to" --> NetDisks
     NetDisks -- "Offloads Frozen Data" --> ObjStore
     ObjStore -- "Historical Analytics" --> Trino
-    class External,OCI,OtherCells ghost
+    class OCI ghost

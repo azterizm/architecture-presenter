@@ -31,6 +31,16 @@ export class NodeHighlighter {
         font-weight: normal !important;
       }
 
+      /* Ensure subgraphs/containers maintain dark aesthetics and good contrast */
+      .cluster rect {
+        fill: rgba(2, 6, 23, 0.3) !important;
+        stroke: rgba(255, 255, 255, 0.1) !important;
+        rx: 8px; /* Slightly round the corners for a more modern look */
+      }
+      .cluster .label {
+        fill: #64748b !important;
+      }
+
       /* Intensified Persistent Glow States */
       .node[data-highlight-state="1"] {
         filter: drop-shadow(0 0 15px #facc15);

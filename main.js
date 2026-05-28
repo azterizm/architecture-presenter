@@ -29,7 +29,7 @@ const render = async (content) => {
     return;
   }
 
-  const themedContent = content.replace(/graph (TD|LR|BT|RL|TB)/i, `graph $1\n${themeClasses}`);
+  const themedContent = content.replace(/\b(graph|flowchart)\s+(TD|LR|BT|RL|TB)/i, `$1 $2\n${themeClasses}`);
 
   graphElement.removeAttribute('data-processed');
   graphElement.innerHTML = themedContent;

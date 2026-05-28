@@ -1,0 +1,32 @@
+graph TD
+%% ── Dark Elegant Theme ─────────────────────────────────
+classDef gold      fill:#1f1c15,stroke:#c8a96e,stroke-width:1.5px,color:#e8d5a8
+classDef sage      fill:#131a14,stroke:#7a9e7e,stroke-width:1px,color:#a8c8ac
+classDef steel     fill:#131620,stroke:#8896a8,stroke-width:1px,color:#b0bece
+classDef crimson   fill:#1a1212,stroke:#a87878,stroke-width:1.5px,color:#d4a0a0
+classDef ghost     fill:#111110,stroke:#2a2926,stroke-width:1px,color:#6a6860,stroke-dasharray:4 3
+classDef prominent fill:#c8a96e,stroke:#c8a96e,color:#1a1508,font-weight:600
+
+    Title["Architecture 2 Hidden Trade-offs<br>(Trading Database CapEx for Elite Engineering OpEx)"]:::prominent
+
+    subgraph Challenges ["The 5 Critical Flaws of a Custom 'Do-It-Yourself' Database"]
+        direction TB
+        
+        C1["1. Engineering & Maintenance Trap<br>OS/Kernel friction with rapid disk mounts.<br>Bus Factor of 1-2 (Requires elite low-level systems engineers)."]:::crimson
+        
+        C2["2. The 'Failsafe' Flaw (Cloud APIs)<br>OCI APIs take 30-90s to mount emergency disks.<br>At 680 MB/s, this forces a ~40GB+ RAM buffer.<br>High risk of Out-of-Memory (OOM) application crashes."]:::crimson
+        
+        C3["3. Node Death & Data Recovery<br>No native replication or clustering protocol.<br>Node crashes leave 'dirty' orphaned disks behind.<br>Requires manual intervention or fragile custom recovery scripts."]:::crimson
+        
+        C4["4. Split-Brain Read Nightmare<br>Data is fractured across 4 states at any given moment:<br>Live RAM → 48 Local Disks → In-Flight → Object Storage.<br>Scatter-gather API queries will cause unpredictable read latency."]:::crimson
+        
+        C5["5. Hidden Financial Tax (Object Storage PUT APIs)<br>1M RPS = 2.59 Trillion requests/month.<br>Unbatched 32KB PUTs to OCI = Millions of $$$ in API fees.<br>Forced large batching (64-128MB) increases data loss risk on crash."]:::crimson
+    end
+
+    Title --> C1
+    Title --> C2
+    Title --> C3
+    Title --> C4
+    Title --> C5
+    
+    class Challenges ghost

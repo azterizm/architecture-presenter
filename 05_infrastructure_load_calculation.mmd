@@ -1,0 +1,51 @@
+graph TD
+%% ── Dark Elegant Theme ─────────────────────────────────
+classDef gold      fill:#1f1c15,stroke:#c8a96e,stroke-width:1.5px,color:#e8d5a8
+classDef sage      fill:#131a14,stroke:#7a9e7e,stroke-width:1px,color:#a8c8ac
+classDef steel     fill:#131620,stroke:#8896a8,stroke-width:1px,color:#b0bece
+classDef crimson   fill:#1a1212,stroke:#a87878,stroke-width:1px,color:#d4a0a0
+classDef ghost     fill:#111110,stroke:#2a2926,stroke-width:1px,color:#6a6860,stroke-dasharray:4 3
+classDef prominent fill:#c8a96e,stroke:#c8a96e,color:#1a1508,font-weight:600
+classDef highlight fill:#2d2417,stroke:#c8a96e,stroke-width:1px,color:#e8d5a8
+
+    subgraph Analysis ["Peak Network Load per VM (Single Node Analysis)"]
+        NLB["Internet / NLB Ingress"]:::prominent
+        Consumer["Consumer (Live Read)"]:::sage
+        
+        subgraph VM_Node ["Single VM (40 OCPU / 128GB RAM)"]
+            direction TB
+            NIC["Virtual NIC<br>(Full Duplex: 40Gbps Rx / 40Gbps Tx)"]:::highlight
+            Processor["Go App (Data Processor & RAM Buffer)"]:::steel
+            NIC <--> Processor
+        end
+        
+        subgraph Disks ["8x Elastic Network Disks (Block Volumes)"]
+            direction LR
+            Active[("Active Disk<br>(Write Target)")]:::gold
+            Draining[("Draining Disk<br>(Read Source)")]:::sage
+            Idle[("6x Idle / Clean<br>Disks")]:::steel
+        end
+        
+        ObjStore[("OCI Object Storage<br>(Archive)")]:::sage
+        
+        %% Traffic Flows (Concurrent)
+        NLB -- "Inbound (Rx): Live Ingest<br>680 MB/s" --> NIC
+        NIC -- "Outbound (Tx): Disk Write<br>680 MB/s" --> Active
+        NIC -- "Outbound (Tx): Live Read (from RAM)<br>680 MB/s" --> Consumer
+        
+        Draining -- "Inbound (Rx): Disk Read (Drain)<br>2,000 MB/s" --> NIC
+        NIC -- "Outbound (Tx): Object Storage Upload<br>2,000 MB/s" --> ObjStore
+    end
+    
+    subgraph Justification ["Infrastructure Engineering Justification"]
+        direction TB
+        CalcRx["Receive (Rx) - Data entering the VM:<br>+ 680 MB/s: Live payload from LB<br>+ 2,000 MB/s: Read frozen disk via iSCSI<br>Total Rx: 2,680 MB/s<br>VM Limit: 5,000 MB/s (40 Gbps)<br>Headroom: 2,320 MB/s (Extremely safe margin)"]:::ghost
+
+        CalcTx["Transmit (Tx) - Data leaving the VM:<br>+ 680 MB/s: Write payload to active disk via iSCSI<br>+ 680 MB/s: Serve Live Read from RAM to consumer<br>+ 2,000 MB/s: Upload frozen data to OCI Object Storage<br>Total Tx: 3,360 MB/s<br>VM Limit: 5,000 MB/s (40 Gbps)<br>Headroom: 1,640 MB/s (Comfortable safety margin)"]:::ghost
+        
+        Infra["Network Scale Justification:<br>Advertised 40Gbps VM network is full duplex (40Gbps Rx / 40Gbps Tx), giving 80Gbps total capacity.<br>This shape is mandatory to handle the concurrent 3,360 MB/s (Tx) peak load without throttling.<br>Global Scale: 4 Cells × 12 VMs = 48 VMs.<br>Storage Scale: 48 VMs × 8 Disks = 384 Network Disks."]:::gold
+    end
+    
+    Analysis -.-> Justification
+    
+    class Analysis,VM_Node,Disks,Justification ghost
