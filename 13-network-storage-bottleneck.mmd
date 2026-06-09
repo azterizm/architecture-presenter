@@ -1,0 +1,39 @@
+graph TD
+%% ── Dark Elegant Theme ─────────────────────────────────
+classDef gold      fill:#1f1c15,stroke:#c8a96e,stroke-width:1.5px,color:#e8d5a8
+classDef sage      fill:#131a14,stroke:#7a9e7e,stroke-width:1px,color:#a8c8ac
+classDef steel     fill:#131620,stroke:#8896a8,stroke-width:1px,color:#b0bece
+classDef crimson   fill:#1a1212,stroke:#a87878,stroke-width:1px,color:#d4a0a0
+classDef ghost     fill:#111110,stroke:#2a2926,stroke-width:1px,color:#6a6860,stroke-dasharray:4 3
+classDef prominent fill:#c8a96e,stroke:#c8a96e,color:#1a1508,font-weight:600
+
+    subgraph TheMath ["The Theoretical Bottleneck (Raw Math)"]
+        Pipe["OCI Ultra High Performance Volume<br>(Max Throughput: 2680 MB/s)"]:::steel
+        Tenants["448 Concurrent Tenants"]:::crimson
+        Math["2680 MB/s ÷ 448 = ~5.98 MB/s per Tenant"]:::crimson
+        Panic["Catastrophic Failure<br>(AAA games require 200-500 MB/s bursts; 6 MB/s causes stutter/crashes)"]:::crimson
+
+        Pipe --> Tenants --> Math --> Panic
+    end
+
+    subgraph TheSavior ["The Real-World Solution (Linux Page Cache)"]
+        NVMeOF["NVMe-oF Backend (OCI SmartNIC)<br>(Sub-millisecond latency; maps directly to PCIe bus)"]:::sage
+        FirstRead["1. The First Read (Network Hit)<br>Tenant 1 loads Game X (Uses Network Pipe)"]:::gold
+        RAMCache["Linux Page Cache (Node RAM)<br>(Files cached in memory at 50+ GB/s)"]:::prominent
+        SubsequentReads["2. Subsequent Reads (RAM Hit)<br>Tenants 2-56 load Game X (Bypasses Network Pipe entirely)"]:::gold
+
+        NVMeOF --> FirstRead --> RAMCache --> SubsequentReads
+    end
+
+    subgraph TheDanger ["The Edge Case (Cache Thrashing)"]
+        Fragmentation["High Fragmentation<br>(56 tenants play 56 massive, different games)"]:::steel
+        Eviction["RAM Fills / Cache Eviction<br>(System forced to fetch assets over network)"]:::crimson
+        Thrashing["Network Thrashing<br>(Defaults back to the 5.98 MB/s catastrophic bottleneck)"]:::crimson
+
+        Fragmentation --> Eviction --> Thrashing
+    end
+
+    Panic -. "Mitigated by OS Architecture" .-> NVMeOF
+    SubsequentReads -. "Breaks if..." .-> Fragmentation
+
+    class TheMath,TheSavior,TheDanger ghost

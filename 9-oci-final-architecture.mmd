@@ -1,0 +1,46 @@
+graph TD
+%% ── Dark Elegant Theme ─────────────────────────────────
+classDef gold      fill:#1f1c15,stroke:#c8a96e,stroke-width:1.5px,color:#e8d5a8
+classDef sage      fill:#131a14,stroke:#7a9e7e,stroke-width:1px,color:#a8c8ac
+classDef steel     fill:#131620,stroke:#8896a8,stroke-width:1px,color:#b0bece
+classDef crimson   fill:#1a1212,stroke:#a87878,stroke-width:1px,color:#d4a0a0
+classDef ghost     fill:#111110,stroke:#2a2926,stroke-width:1px,color:#6a6860,stroke-dasharray:4 3
+classDef prominent fill:#c8a96e,stroke:#c8a96e,color:#1a1508,font-weight:600
+
+    subgraph Client ["Client Edge (Solved Egress: OCI 10TB/mo Free Tier)"]
+        T1(("Tenant 1")):::prominent
+        T2(("Tenant 2")):::prominent
+        T3(("Tenant 3")):::prominent
+        T4(("Tenant 4")):::prominent
+    end
+
+    subgraph OCI ["Oracle Cloud Infrastructure (Final Optimized Architecture)"]
+        ObjStore[("OCI Object Storage<br>(Idle State Backups)")]:::sage
+        SharedVol[("Shared Block Storage (1.5TB)<br>(Read-Only Shareable / Multi-Attach)")]:::prominent
+        
+        ObjStore -- "1. Warmup: Mount & Sequential Read to SSD" --> SharedVol
+        SharedVol -- "4. Idle: Backup to Object Storage" --> ObjStore
+        
+        subgraph Node1 ["VM.GPU3.1 Preemptible Node 1"]
+            Overlay1[("Small Local Block<br>(OverlayFS Upperdir)")]:::gold
+            Wine1["Linux / Proton + Sunshine<br>(Streaming Stack)"]:::steel
+            Wine1 -- "3. Write saves/state" --> Overlay1
+            Wine1 -- "2. Read game files" --> SharedVol
+        end
+        
+        subgraph Node2 ["VM.GPU3.1 Preemptible Node 2"]
+            Overlay2[("Small Local Block<br>(OverlayFS Upperdir)")]:::gold
+            Wine2["Linux / Proton + Sunshine<br>(Streaming Stack)"]:::steel
+            Wine2 -- "3. Write saves/state" --> Overlay2
+            Wine2 -- "2. Read game files" --> SharedVol
+        end
+        
+        SharedVol -. "Supports up to 8 Nodes<br>(Resolves AWS 1:1 Storage Constraint)" .-> NodeN["... Nodes 3 to 8"]:::ghost
+    end
+    
+    T1 -- "Play Session" --> Wine1
+    T2 -- "Play Session" --> Wine1
+    T3 -- "Play Session" --> Wine2
+    T4 -- "Play Session" --> Wine2
+
+    class Client,OCI,Node1,Node2 ghost

@@ -96,13 +96,15 @@ currentFile = getDiagramFromHash();
 
 // Setup select dropdown
 selectElement.innerHTML = ''; // Clear previous options to prevent duplicating on HMR
-Object.keys(diagrams).forEach(key => {
-  const option = document.createElement('option');
-  option.value = key;
-  option.textContent = key.replace('./', '');
-  if (key === currentFile) option.selected = true;
-  selectElement.appendChild(option);
-});
+Object.keys(diagrams)
+  .sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }))
+  .forEach(key => {
+    const option = document.createElement('option');
+    option.value = key;
+    option.textContent = key.replace('./', '');
+    if (key === currentFile) option.selected = true;
+    selectElement.appendChild(option);
+  });
 
 selectElement.addEventListener('change', (e) => {
   loadDiagram(e.target.value);

@@ -1,0 +1,39 @@
+graph TD
+%% ── Dark Elegant Theme ─────────────────────────────────
+classDef gold      fill:#1f1c15,stroke:#c8a96e,stroke-width:1.5px,color:#e8d5a8
+classDef sage      fill:#131a14,stroke:#7a9e7e,stroke-width:1px,color:#a8c8ac
+classDef steel     fill:#131620,stroke:#8896a8,stroke-width:1px,color:#b0bece
+classDef crimson   fill:#1a1212,stroke:#a87878,stroke-width:1px,color:#d4a0a0
+classDef ghost     fill:#111110,stroke:#2a2926,stroke-width:1px,color:#6a6860,stroke-dasharray:4 3
+classDef prominent fill:#c8a96e,stroke:#c8a96e,color:#1a1508,font-weight:600
+
+    subgraph Client ["Client Edge"]
+        Player["Client Application<br>(Moonlight Protocol • 1080p 60fps)"]:::prominent
+    end
+
+    subgraph VFIO ["Hardware Virtualization (VFIO QEMU/KVM)"]
+        Hypervisor["QEMU / KVM Hypervisor<br>(Host Linux Kernel)"]:::steel
+        VFIO_PCI["VFIO PCIe Passthrough<br>(1:1 GPU Allocation)"]:::sage
+        GuestOS["Guest Operating System<br>(Strict Hardware Isolation)"]:::gold
+        App_VFIO["Target Application / Game"]:::gold
+        
+        Hypervisor --> VFIO_PCI
+        VFIO_PCI --> GuestOS
+        GuestOS --> App_VFIO
+    end
+
+    subgraph Proton ["API Translation (Proton / Wine)"]
+        LinuxHost["Linux Host Operating System<br>(Shared Kernel Resources)"]:::steel
+        Isolation["System Isolation Capability<br>(Namespaces, cgroups, Containers)"]:::sage
+        Translation["Translation Layer<br>(Proton / Wine / DXVK)"]:::gold
+        App_Proton["Target Application / Game"]:::gold
+        
+        LinuxHost --> Isolation
+        Isolation --> Translation
+        Translation --> App_Proton
+    end
+
+    Player -- "Dedicated Resource Overhead" --> VFIO
+    Player -- "Flexible Allocation / Shared Resources" --> Proton
+
+    class Client,VFIO,Proton ghost

@@ -1,0 +1,30 @@
+graph TD
+%% ── Dark Elegant Theme ─────────────────────────────────
+classDef gold      fill:#1f1c15,stroke:#c8a96e,stroke-width:1.5px,color:#e8d5a8
+classDef sage      fill:#131a14,stroke:#7a9e7e,stroke-width:1px,color:#a8c8ac
+classDef steel     fill:#131620,stroke:#8896a8,stroke-width:1px,color:#b0bece
+classDef crimson   fill:#1a1212,stroke:#a87878,stroke-width:1px,color:#d4a0a0
+classDef ghost     fill:#111110,stroke:#2a2926,stroke-width:1px,color:#6a6860,stroke-dasharray:4 3
+classDef prominent fill:#c8a96e,stroke:#c8a96e,color:#1a1508,font-weight:600
+
+    subgraph Compute ["Compute Allocation (Structurally Viable)"]
+        Node["g5.4xlarge Instance<br>Base Price: ~$1.99/hr"]:::steel
+        Spot["Spot Instance Discount<br>(35% - 45% Reduction)"]:::sage
+        EffectiveCost["Effective Node Cost<br>~$1.30/hr"]:::gold
+        TenantCompute["Per-Tenant Compute<br>~$0.40/hr (3 Tenants grouped per node)"]:::gold
+        
+        Node --> Spot --> EffectiveCost --> TenantCompute
+    end
+
+    subgraph Traps ["The Deal Breakers (Architectural Fatalities)"]
+        Egress["Data Transfer Egress<br>~$1.24/hr per Tenant"]:::crimson
+        Storage["EBS Persistent Storage<br>~$9.60/mo per Volume"]:::crimson
+    end
+
+    Result["Broken Unit Economics<br>(Bandwidth costs exceed compute overhead by >300%, negating all Spot savings)"]:::prominent
+
+    TenantCompute --> Result
+    Egress --> Result
+    Storage --> Result
+
+    class Compute,Traps ghost

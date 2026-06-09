@@ -1,0 +1,37 @@
+graph TD
+%% ── Dark Elegant Theme ─────────────────────────────────
+classDef gold      fill:#1f1c15,stroke:#c8a96e,stroke-width:1.5px,color:#e8d5a8
+classDef sage      fill:#131a14,stroke:#7a9e7e,stroke-width:1px,color:#a8c8ac
+classDef steel     fill:#131620,stroke:#8896a8,stroke-width:1px,color:#b0bece
+classDef crimson   fill:#1a1212,stroke:#a87878,stroke-width:1px,color:#d4a0a0
+classDef ghost     fill:#111110,stroke:#2a2926,stroke-width:1px,color:#6a6860,stroke-dasharray:4 3
+classDef prominent fill:#c8a96e,stroke:#c8a96e,color:#1a1508,font-weight:600
+
+    subgraph Trap ["Early-Stage Capacity Vulnerability"]
+        BigNode["BM.GPU.RTXPRO.8 Node<br>(High Capacity: 56 Tenants)"]:::steel
+        EmptySlots["Low Startup Traffic<br>(Severe Underutilization)"]:::crimson
+        BrokenEcon["Broken Unit Economics<br>(Subsidizing empty GPU slots)"]:::crimson
+        
+        BigNode --> EmptySlots --> BrokenEcon
+    end
+
+    subgraph Startup ["Phase 1: Right-Sized Startup Architecture"]
+        SmallNode["Cost-Optimized A10 Node (VM.GPU.A10.1)<br>(Capacity: 4 Tenants • AA Titles)"]:::sage
+        ViableEcon["Compliant Unit Economics<br>(~$0.56 - $0.60/hr compute per tenant)"]:::gold
+        
+        SmallNode --> ViableEcon
+    end
+
+    subgraph Scaling ["Phase 2: Dynamic Migration via Hot Swap"]
+        TrafficSpike["Traffic / Concurrency Increases<br>(A10 Nodes reaching aggregate limits)"]:::steel
+        HotSwap["Instant Hot Swap Strategy<br>(Seamlessly capture state & redirect clients)"]:::prominent
+        DenseNode["Consolidate to High-Density Node<br>(Migrate to BM.GPU.RTXPRO.8)"]:::sage
+        SustainedEcon["Sustained Unit Economics<br>(Maximized density as traffic peaks)"]:::gold
+        
+        TrafficSpike --> HotSwap --> DenseNode --> SustainedEcon
+    end
+
+    BrokenEcon -. "Strategic Pivot" .-> Startup
+    ViableEcon --> TrafficSpike
+
+    class Trap,Startup,Scaling ghost

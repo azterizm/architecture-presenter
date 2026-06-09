@@ -1,0 +1,39 @@
+graph TD
+%% ── Dark Elegant Theme ─────────────────────────────────
+classDef gold      fill:#1f1c15,stroke:#c8a96e,stroke-width:1.5px,color:#e8d5a8
+classDef sage      fill:#131a14,stroke:#7a9e7e,stroke-width:1px,color:#a8c8ac
+classDef steel     fill:#131620,stroke:#8896a8,stroke-width:1px,color:#b0bece
+classDef crimson   fill:#1a1212,stroke:#a87878,stroke-width:1px,color:#d4a0a0
+classDef ghost     fill:#111110,stroke:#2a2926,stroke-width:1px,color:#6a6860,stroke-dasharray:4 3
+classDef prominent fill:#c8a96e,stroke:#c8a96e,color:#1a1508,font-weight:600
+
+    subgraph IdlePhase ["Phase 1: Zero-Tenant Idle State (Cost Optimization)"]
+        ObjStore[("OCI Object Storage<br>(Master Backup Repository • ~$0.05/hr)")]:::sage
+        TearDown["Compute & Active Block Volumes Terminated<br>(Eliminates ~$0.48/hr idle burn)"]:::steel
+        
+        TearDown -. "Retains State" .-> ObjStore
+    end
+
+    subgraph WarmupPhase ["Phase 2: Predictive / On-Demand Warm-up"]
+        RestoredVol[("Restored Block Volume<br>(Vulnerable to Lazy-Loading Network Latency)")]:::crimson
+        SeqRead["Sequential Read Execution<br>(e.g., tar -cf /dev/null /mnt/games/target)"]:::prominent
+        ReadyVol[("Fully Cached Physical SSD<br>(Eliminates in-game network fetch latency)")]:::sage
+
+        ObjStore -- "1. Restore Volume on Tenant Demand" --> RestoredVol
+        RestoredVol -- "2. Force Max-Speed Cache Fetch" --> SeqRead
+        SeqRead -- "3. Commit Target Game to SSD" --> ReadyVol
+    end
+
+    subgraph ActivePhase ["Phase 3: Active OverlayFS Architecture (Supports 1 to 8 Nodes)"]
+        SharedLower[("High-Performance Shared Volume (1.5TB)<br>(Read-Only Lowerdir)")]:::gold
+        LocalUpper[("Cheap Small Local Block Volume<br>(Writable Upperdir)")]:::steel
+        OverlayFS["OverlayFS Controller<br>(Merges R/O Library + Writable State)"]:::prominent
+        GPUApp["Streaming Stack & Game Runtime<br>(Sees unified writable filesystem)"]:::gold
+
+        ReadyVol -. "4. Mounts As" .-> SharedLower
+        SharedLower -- "Reads Massive Game Data" --> OverlayFS
+        OverlayFS -- "Isolates Saves & Configs" --> LocalUpper
+        OverlayFS --- GPUApp
+    end
+
+    class IdlePhase,WarmupPhase,ActivePhase ghost

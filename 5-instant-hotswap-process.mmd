@@ -1,0 +1,44 @@
+graph TD
+%% ── Dark Elegant Theme ─────────────────────────────────
+classDef gold      fill:#1f1c15,stroke:#c8a96e,stroke-width:1.5px,color:#e8d5a8
+classDef sage      fill:#131a14,stroke:#7a9e7e,stroke-width:1px,color:#a8c8ac
+classDef steel     fill:#131620,stroke:#8896a8,stroke-width:1px,color:#b0bece
+classDef crimson   fill:#1a1212,stroke:#a87878,stroke-width:1px,color:#d4a0a0
+classDef ghost     fill:#111110,stroke:#2a2926,stroke-width:1px,color:#6a6860,stroke-dasharray:4 3
+classDef prominent fill:#c8a96e,stroke:#c8a96e,color:#1a1508,font-weight:600
+
+    Signal["⚠️ 2-Minute Termination Warning Received"]:::crimson
+
+    subgraph DyingNode ["Active Spot Instance (Terminating)"]
+        ForceSave["1. Slam Quick Save<br>(AutoHotkey / Script Injection)"]:::gold
+        Upload["2. Upload State<br>(Push save files to S3)"]:::sage
+    end
+
+    subgraph ControlPlane ["Control Plane"]
+        Orchestrator["Tiny VM Orchestrator"]:::steel
+        Provision["3. Provision Replacement Instance<br>& Attach existing EBS gp3 Volume"]:::steel
+    end
+
+    subgraph CloudStorage ["Persistent Cloud Storage"]
+        ObjStore[("Object Storage<br>(S3 / Cloud Saves)")]:::sage
+    end
+
+    subgraph NewNode ["Replacement Spot Instance (Active)"]
+        Download["4. Restore State<br>(Pull saves from S3)"]:::sage
+        Resume["5. Resume Play<br>(Auto-load save via CLI/Macros)"]:::prominent
+    end
+
+    %% Flow of events
+    Signal --> ForceSave
+    Signal --> Orchestrator
+
+    ForceSave --> Upload
+    Upload --> ObjStore
+
+    Orchestrator --> Provision
+    Provision --> Download
+    
+    ObjStore --> Download
+    Download --> Resume
+
+    class DyingNode,ControlPlane,CloudStorage,NewNode ghost

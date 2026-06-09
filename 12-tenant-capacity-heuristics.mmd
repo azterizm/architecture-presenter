@@ -1,0 +1,33 @@
+graph TD
+%% ── Dark Elegant Theme ─────────────────────────────────
+classDef gold      fill:#1f1c15,stroke:#c8a96e,stroke-width:1.5px,color:#e8d5a8
+classDef sage      fill:#131a14,stroke:#7a9e7e,stroke-width:1px,color:#a8c8ac
+classDef steel     fill:#131620,stroke:#8896a8,stroke-width:1px,color:#b0bece
+classDef crimson   fill:#1a1212,stroke:#a87878,stroke-width:1px,color:#d4a0a0
+classDef ghost     fill:#111110,stroke:#2a2926,stroke-width:1px,color:#6a6860,stroke-dasharray:4 3
+classDef prominent fill:#c8a96e,stroke:#c8a96e,color:#1a1508,font-weight:600
+
+    subgraph Naive ["The Naive Testing Trap (Unconstrained)"]
+        Unconstrained["Unconstrained Execution<br>(Running game freely on massive multi-tenant node)"]:::steel
+        GreedyCache["Greedy Engine Caching<br>(Game dynamically claims all free RAM/VRAM)"]:::crimson
+        FalseLimit["False Capacity Ceiling<br>(Telemetry falsely suggests node maxes out at 2-3 tenants)"]:::crimson
+        
+        Unconstrained --> GreedyCache --> FalseLimit
+    end
+
+    subgraph Strategic ["Heuristic Slicing Methodology (Strict Isolation)"]
+        Isolate["Strict Resource Isolation<br>(Enforce hard limits on compute, VRAM, and memory)"]:::sage
+        Heuristic["Iterative Slice Reduction<br>(Gradually cut the resource slice while monitoring FPS/frame times)"]:::gold
+        EngineBehavior["Forced Engine Optimization<br>(Prevents lazy caching; forces game engine to strategically manage limited resources)"]:::prominent
+        
+        Isolate --> Heuristic --> EngineBehavior
+    end
+
+    subgraph Outcome ["Optimized Unit Economics"]
+        MaxDensity["Maximized Node Density<br>(Unlocks true capacity, e.g., 56 tenants per node)"]:::sage
+    end
+
+    FalseLimit -. "Necessitates alternative approach" .-> Isolate
+    EngineBehavior --> MaxDensity
+
+    class Naive,Strategic,Outcome ghost
